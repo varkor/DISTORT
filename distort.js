@@ -28,6 +28,7 @@ const PLAYER_SPEED = 4;
 const MAX_ENEMIES = 30;
 const AUTOMATIC_FIRING = false;
 const FIRING_RATE = 0.1;
+const SCREENSHOT_MODE = false;
 
 // Grid constants.
 const CELL_SIZE = 32; // The size of each grid cell.
@@ -281,7 +282,7 @@ class Game {
 			game.is_over = Math.min(1, game.is_over + 0.01);
 		}
 		// Pause screen.
-		if (game.is_paused) {
+		if (game.is_paused && !SCREENSHOT_MODE) {
 			context.fillStyle = "black";
 			draw.with_alpha(() => context.fillRect(0, 0, WIDTH * PD, HEIGHT * PD), 0.5);
 			context.fillStyle = "white";
@@ -352,7 +353,7 @@ class Drawable {
 
 // Entities (i.e. game objects).
 class Entity extends Drawable {
-	constructor({x, y, dir = 0, spd = 0, dist = 0, fade = false, alpha = 1, destroy = 1/8}, add_to_world = true) {
+	constructor({x, y, dir = 0, spd = 0, dist = 0, fade = false, alpha = 1, destroy = 1/8, ...override}, add_to_world = true) {
 		super();
 		this.x = x;
 		this.y = y;
@@ -362,6 +363,7 @@ class Entity extends Drawable {
 		this.fade = fade; // Whether objects should be deleted after a time (specifically: when they are no longer distorting the grid).
 		this.alpha = alpha; // The alpha of entities. If this reaches 0, the entity is destroyed.
 		this.destroy = destroy; // How quickly to destroy the object.
+		Object.assign(this, override);
 		console.assert(is_numeric(this.x, this.y, this.dir, this.spd, this.dist), "An entity was created with invalid properties: %o", this); // This catches a lot of silly mistakes due to JavaScript's weak typing model.
 		if (add_to_world)
 			game.entities.push(this);
@@ -384,6 +386,7 @@ class Entity extends Drawable {
 	}
 	clean() {
 		this.dist = Math.max(0, this.dist);
+		this.alpha = Math.max(0, this.alpha);
 	}
 }
 
@@ -574,12 +577,12 @@ class Bullet extends Collidable {
 
 class Enemy extends Entity {
 	constructor({x, y, difficulty, ...override}, add_to_world = true) {
-		super({x, y, dir: Math.atan2(game.player.y - y, game.player.x - x), spd: (difficulty + 3) / 3}, add_to_world);
+		super({x, y, dir: Math.atan2(game.player.y - y, game.player.x - x), spd: 0.5 * (difficulty + 3) / 3}, add_to_world);
 		this.difficulty = difficulty;
 		this.recoil = 0;
 		this.hp = Math.ceil(Math.pow(difficulty + 3, 1.5));
 		this.rotate = Math.random() * TAU * (Math.random() > 0.5 ? 1 : -1);
-		this.points = 1000;
+		this.points = 1000 * (difficulty + 1);
 		Object.assign(this, override);
 		if (add_to_world)
 			game.enemies.push(this);

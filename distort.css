@@ -1,0 +1,20 @@
+/* Ensure the background is always black. */
+body {
+	background-color: black;
+}
+:fullscreen {
+	background-color: black;
+}
+:-webkit-full-screen {
+	background-color: black;
+}
+:-moz-full-screen {
+	background-color: black;
+}
+
+/* Centre the canvas. */
+canvas {
+	position: absolute;
+	left: 50%; top: 50%;
+	transform: translate(-50%, -50%);
+}
